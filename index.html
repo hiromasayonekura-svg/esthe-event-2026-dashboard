@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>エステサロンビジネス交流会2026 進捗ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
+  background: #f7f6f3;
+  color: #1f1f1f;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px 18px 60px; }
+
+.hero {
+  background: linear-gradient(135deg, #1c2541 0%, #3a506b 100%);
+  color: #fff;
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  box-shadow: 0 6px 24px rgba(28,37,65,.15);
+}
+.hero h1 { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
+.hero .sub { font-size: 12px; opacity: .85; }
+.right-block { display:flex; align-items:center; gap: 18px; }
+.countdown { text-align: right; }
+.countdown .num { font-size: 38px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+.countdown .label { font-size: 11px; opacity: .85; margin-top: 4px; }
+.icon-btn {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.icon-btn:hover { background: rgba(255,255,255,.25); }
+
+.banner {
+  background: #fff8e1;
+  border: 1px solid #ffd779;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #6b4d00;
+}
+
+section { margin-top: 24px; }
+h2 { font-size: 15px; margin: 0 0 12px; padding-left: 10px; border-left: 4px solid #1c2541; }
+
+.kpis { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 12px; }
+.kpi {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid #ececea;
+}
+.kpi .ttl { font-size: 11px; color: #777; }
+.kpi .val { font-size: 24px; font-weight: 700; margin-top: 4px; }
+.kpi.alert .val { color: #c0392b; }
+.bar { height: 10px; background: #ececea; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.bar > div { height: 100%; background: linear-gradient(90deg, #4caf50, #2e7d32); border-radius: 999px; transition: width .4s ease; }
+
+.focus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel { background: #fff; border-radius: 12px; border: 1px solid #ececea; padding: 16px 18px; }
+.panel h3 { margin: 0 0 10px; font-size: 13px; color: #555; display:flex; align-items:center; gap:8px;}
+.panel h3 .tag { background:#eef2f7; color:#333; font-size:10px; padding:2px 8px; border-radius:99px; font-weight:600;}
+.panel.this-week h3 .tag { background:#fde8e8; color:#b32a2a;}
+.panel.next-week h3 .tag { background:#fff4d6; color:#8a6100;}
+ul.tasklist { list-style:none; padding:0; margin:0;}
+ul.tasklist li {
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+  display:flex; justify-content:space-between; gap:8px; align-items:flex-start;
+}
+ul.tasklist li:last-child { border-bottom: none; }
+ul.tasklist .meta { font-size:11px; color:#888; margin-top:2px;}
+ul.tasklist .due { font-weight:600; white-space:nowrap; font-size:12px;}
+ul.tasklist .due.overdue { color:#c0392b; }
+ul.tasklist .due.today { color:#d97706; }
+.owner { display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; margin-right:4px; }
+.owner-GIFT { background:#e0e8ff; color:#1a3aa8;}
+.owner-エス通 { background:#ffe9d6; color:#8a4500;}
+.owner-会場 { background:#dcefe5; color:#1e6b3a;}
+.owner-出展 { background:#f3e0f7; color:#6a1b8a;}
+
+.status { font-size:10px; padding:2px 6px; border-radius:4px; font-weight:600; white-space:nowrap;}
+.s-done { background:#dff5e1; color:#1e6b3a;}
+.s-doing { background:#fff4d6; color:#8a6100;}
+.s-todo { background:#ececea; color:#555;}
+.s-late { background:#fde8e8; color:#b32a2a;}
+
+table { width:100%; border-collapse: collapse; background:#fff; border-radius:12px; overflow:hidden; border:1px solid #ececea; font-size: 13px;}
+thead { background:#f1efe9; }
+th, td { padding: 10px 12px; text-align:left; border-bottom: 1px solid #f0eee9; vertical-align: top;}
+th { font-weight:600; font-size:12px; color:#444; }
+tr:last-child td { border-bottom: none; }
+tr.row-late { background: #fff7f7; }
+tr.row-done td:nth-child(3) { color: #999; text-decoration: line-through;}
+.filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom: 10px; align-items:center;}
+.filter-bar button {
+  font: inherit;
+  border: 1px solid #d4d0c4;
+  background: #fff;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.filter-bar button.active { background:#1c2541; color:#fff; border-color:#1c2541;}
+
+.chart-wrap { background:#fff; border:1px solid #ececea; border-radius:12px; padding:14px 18px; }
+.chart-row { display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:stretch;}
+canvas { max-height: 220px; }
+.note { font-size: 11px; color: #888; margin-top: 6px;}
+.legend { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:#555; margin-top:8px;}
+.legend span { display:inline-flex; align-items:center; gap:4px;}
+.dot { width:10px; height:10px; border-radius:3px; display:inline-block;}
+
+/* 設定モーダル */
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:99;}
+.modal-bg.open { display:flex; }
+.modal {
+  background:#fff; border-radius:14px; padding:24px 28px; width: min(560px, 92vw);
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+}
+.modal h3 { margin: 0 0 8px; }
+.modal p { font-size: 12px; color:#555; margin: 0 0 12px;}
+.modal label { font-size: 12px; font-weight:600; display:block; margin-top: 10px;}
+.modal input[type="text"] { width:100%; padding:8px 10px; border:1px solid #d4d0c4; border-radius:8px; font-size:13px; margin-top:4px;}
+.modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:18px;}
+.modal button { font: inherit; border-radius: 8px; padding: 7px 14px; cursor:pointer; font-size:13px;}
+.modal .primary { background:#1c2541; color:#fff; border:none;}
+.modal .ghost { background:#fff; border:1px solid #d4d0c4;}
+.modal pre { background:#f7f6f3; padding:10px; border-radius:8px; font-size:11px; overflow-x:auto;}
+
+footer { text-align:center; color:#aaa; font-size:11px; margin-top:40px;}
+
+@media (max-width: 720px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .focus-grid { grid-template-columns: 1fr; }
+  .chart-row { grid-template-columns: 1fr; }
+  .hero { flex-direction: column; align-items: flex-start; }
+  .right-block { width: 100%; justify-content: space-between; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div>
+    <h1>エステサロンビジネス交流会2026</h1>
+    <div class="sub">主催：エステティック通信 ／ 制作パートナー：GIFT ／ 会場：ストリームホール</div>
+    <div class="sub" id="source-label" style="margin-top:6px;">データ取得先：読み込み中...</div>
+  </div>
+  <div class="right-block">
+    <div class="countdown">
+      <div class="num" id="cd-days">--</div>
+      <div class="label">日後に開催（2026年6月19日 金）</div>
+    </div>
+    <button class="icon-btn" id="settings-btn">⚙ 設定</button>
+  </div>
+</div>
+
+<div class="banner" id="setup-banner" style="display:none;">
+  まだGoogleスプレッドシートと連携していません。右上の「⚙ 設定」からシートのURLを入れると、編集内容がここに反映されます。今は組み込みのサンプルデータで表示しています。
+</div>
+
+<section>
+  <h2>進捗サマリー</h2>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="ttl">全体進捗</div>
+      <div class="val"><span id="kpi-pct">0</span>%</div>
+      <div class="bar"><div id="kpi-bar" style="width:0%"></div></div>
+      <div class="note"><span id="kpi-done">0</span> / <span id="kpi-total">0</span> 完了</div>
+    </div>
+    <div class="kpi"><div class="ttl">完了</div><div class="val" style="color:#1e6b3a"><span id="ct-done">0</span></div></div>
+    <div class="kpi"><div class="ttl">進行中</div><div class="val" style="color:#8a6100"><span id="ct-doing">0</span></div></div>
+    <div class="kpi"><div class="ttl">未着手</div><div class="val"><span id="ct-todo">0</span></div></div>
+    <div class="kpi alert"><div class="ttl">遅延</div><div class="val"><span id="ct-late">0</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>直近フォーカス</h2>
+  <div class="focus-grid">
+    <div class="panel this-week">
+      <h3>今週（直近7日間）<span class="tag" id="this-week-count">0件</span></h3>
+      <ul class="tasklist" id="ul-this-week"></ul>
+    </div>
+    <div class="panel next-week">
+      <h3>来週〜再来週（8〜21日先）<span class="tag" id="next-week-count">0件</span></h3>
+      <ul class="tasklist" id="ul-next-week"></ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>カテゴリ別の進み具合</h2>
+  <div class="chart-row">
+    <div class="chart-wrap"><canvas id="donut"></canvas></div>
+    <div class="chart-wrap"><canvas id="bar"></canvas></div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#4caf50"></span>完了</span>
+    <span><span class="dot" style="background:#f7c948"></span>進行中</span>
+    <span><span class="dot" style="background:#cccccc"></span>未着手</span>
+    <span><span class="dot" style="background:#e74c3c"></span>遅延</span>
+  </div>
+</section>
+
+<section>
+  <h2>全タスク一覧</h2>
+  <div class="filter-bar">
+    <span style="font-size:12px;color:#555;margin-right:4px;">担当：</span>
+    <button data-owner="all" class="active o-filter">すべて</button>
+    <button data-owner="GIFT" class="o-filter">GIFT</button>
+    <button data-owner="エス通" class="o-filter">エス通</button>
+    <button data-owner="会場" class="o-filter">会場</button>
+    <button data-owner="出展" class="o-filter">出展</button>
+    <span style="font-size:12px;color:#555;margin:0 4px 0 12px;">状態：</span>
+    <button data-status="all" class="active s-filter">すべて</button>
+    <button data-status="todo" class="s-filter">未着手</button>
+    <button data-status="doing" class="s-filter">進行中</button>
+    <button data-status="late" class="s-filter">遅延</button>
+    <button data-status="done" class="s-filter">完了</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:80px;">期日</th>
+        <th style="width:130px;">カテゴリ</th>
+        <th>タスク</th>
+        <th style="width:140px;">担当</th>
+        <th style="width:80px;">状態</th>
+        <th style="width:160px;">メモ</th>
+      </tr>
+    </thead>
+    <tbody id="task-body"></tbody>
+  </table>
+  <div class="note">データはGoogleスプレッドシートが正です。状態変更や追加は <b>スプレッドシート側</b> で編集してください（このページの「⟳ 再読み込み」で反映）。</div>
+</section>
+
+<footer>
+  最終更新：<span id="last-update">-</span> ／
+  <a href="#" id="reload-link">⟳ 再読み込み</a>
+</footer>
+
+</div>
+
+<!-- 設定モーダル -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>データ取得先の設定</h3>
+    <p>GoogleスプレッドシートをCSV形式でウェブ公開し、そのURLを貼り付けてください。<br>
+    （Sheets → ファイル → 共有 → 「ウェブに公開」 → 形式=カンマ区切り値 → 公開 → 表示されるURL）</p>
+    <label>CSV URL</label>
+    <input type="text" id="csv-url" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" />
+    <div class="actions">
+      <button class="ghost" id="modal-clear">クリア</button>
+      <button class="ghost" id="modal-cancel">キャンセル</button>
+      <button class="primary" id="modal-save">保存して再読み込み</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========== 設定 ===========
+const STORAGE_KEY = "esthe-event-2026-csv-url";
+// 初期表示で使うCSV URL（誰がアクセスしてもこのデータが見える）
+// 個人別に別シートを見たい人は右上「⚙ 設定」で上書きできる
+const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ6GL5PUbXPF6VfjsdyqMESUW5vBVjw7ojxhWwDhkgdLPzn6smmsDXfXkSI-SxwjIryP_Ni5NRkCrtZ/pub?gid=1505863423&single=true&output=csv";
+const EVENT_DATE = new Date("2026-06-19T00:00:00+09:00");
+
+// 組み込みフォールバックデータ（スプレッドシート未設定時に使用）
+const FALLBACK = [
+  ["id","category","title","due_date","owner","status","note"],
+  ["1","映像制作","OPCG・テロップ等 GIFT展開","2026-06-16","GIFT","todo",""],
+  ["2","映像制作","データ動作確認","2026-06-17","GIFT,エス通","todo",""],
+  ["3","映像制作","エステサロンビジネス交流会2026 開催","2026-06-19","GIFT,エス通,会場,出展","todo","本番当日"],
+  ["4","スタンドパネル","デザイン検討","2026-05-20","GIFT,エス通","done",""],
+  ["5","スタンドパネル","入稿","2026-06-04","GIFT","todo",""],
+  ["6","スタンドパネル","御社（エス通）納品","2026-06-12","GIFT,エス通","todo",""],
+  ["7","進行台本","初稿提出（GIFT→エス通）","2026-05-21","GIFT","done",""],
+  ["8","進行台本","初稿お戻し（エス通→GIFT）","2026-05-28","エス通","todo",""],
+  ["9","進行台本","第2稿提出","2026-06-04","GIFT","todo",""],
+  ["10","進行台本","第2稿お戻し","2026-06-11","エス通","todo",""],
+  ["11","進行台本","最終稿提出","2026-06-15","GIFT","todo",""],
+  ["12","進行台本","最終稿確定","2026-06-17","エス通","todo",""],
+  ["13","進行台本","印刷","2026-06-18","GIFT","todo",""],
+  ["14","運営マニュアル","初稿提出（GIFT→エス通）","2026-05-21","GIFT","done",""],
+  ["15","運営マニュアル","初稿お戻し（エス通→GIFT）","2026-05-28","エス通","todo",""],
+  ["16","運営マニュアル","第2稿提出","2026-06-04","GIFT","todo",""],
+  ["17","運営マニュアル","第2稿お戻し","2026-06-11","エス通","todo",""],
+  ["18","運営マニュアル","最終稿提出","2026-06-15","GIFT","todo",""],
+  ["19","運営マニュアル","最終稿確定","2026-06-17","エス通","todo",""],
+  ["20","運営マニュアル","印刷","2026-06-18","GIFT","todo",""],
+  ["21","ケータリング","数量確定","2026-05-29","エス通","todo","KPI参加予定人数と直結"],
+  ["22","ケータリング","弁当数確定","2026-06-04","エス通","todo",""],
+  ["23","会場・備品","ロケハン可能日","2026-06-01","エス通,会場","todo",""],
+  ["24","会場・備品","備品確定","2026-06-12","エス通,会場","todo",""],
+  ["25","展示関係","フロア配分確定","2026-06-04","エス通,出展","todo",""],
+  ["26","展示関係","レイアウト確定","2026-06-08","エス通,出展","todo",""],
+  ["27","展示関係","配線購入","2026-06-12","GIFT,エス通","todo",""],
+  ["28","展示関係","調整","2026-06-15","GIFT,エス通","todo",""],
+  ["29","トランシーバー","発注","2026-06-12","エス通","todo",""],
+];
+
+let TASKS = [];
+
+// =========== ユーティリティ ===========
+function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function fmtDate(s){
+  if (!s) return "-";
+  const d = new Date(s + "T00:00:00+09:00");
+  if (isNaN(d)) return s;
+  const m = d.getMonth()+1, day = d.getDate();
+  const w = "日月火水木金土"[d.getDay()];
+  return `${m}/${day}（${w}）`;
+}
+function statusOf(t){
+  if (t.status === "done") return "done";
+  if (t.status === "doing") return "doing";
+  if (t.status === "late") return "late";
+  const d = new Date(t.date + "T00:00:00+09:00");
+  if (!isNaN(d) && d < startOfDay(new Date())) return "late";
+  return "todo";
+}
+function ownerTag(o){ return `<span class="owner owner-${o}">${o}</span>`; }
+function statusBadge(s){
+  const map = {done:["完了","s-done"], doing:["進行中","s-doing"], todo:["未着手","s-todo"], late:["遅延","s-late"]};
+  const [l,c] = map[s];
+  return `<span class="status ${c}">${l}</span>`;
+}
+
+// 簡易CSVパーサ（ダブルクォート対応）
+function parseCSV(text){
+  const rows = [];
+  let i=0, field="", row=[], inQ=false;
+  while (i < text.length){
+    const ch = text[i];
+    if (inQ){
+      if (ch === '"' && text[i+1] === '"'){ field+='"'; i+=2; continue; }
+      if (ch === '"'){ inQ=false; i++; continue; }
+      field += ch; i++; continue;
+    }
+    if (ch === '"'){ inQ=true; i++; continue; }
+    if (ch === ','){ row.push(field); field=""; i++; continue; }
+    if (ch === '\r'){ i++; continue; }
+    if (ch === '\n'){ row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
+    field += ch; i++;
+  }
+  if (field !== "" || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length && !(r.length===1 && r[0]===""));
+}
+
+function rowsToTasks(rows){
+  const head = rows[0].map(s => s.trim().toLowerCase());
+  const idx = {
+    id: head.indexOf("id"),
+    cat: head.indexOf("category"),
+    title: head.indexOf("title"),
+    date: head.indexOf("due_date"),
+    owner: head.indexOf("owner"),
+    status: head.indexOf("status"),
+    note: head.indexOf("note"),
+  };
+  return rows.slice(1).filter(r => r[idx.title]).map(r => ({
+    id: r[idx.id] || "",
+    cat: r[idx.cat] || "",
+    title: r[idx.title] || "",
+    date: (r[idx.date] || "").trim(),
+    owners: (r[idx.owner] || "").split(",").map(s => s.trim()).filter(Boolean),
+    status: (r[idx.status] || "todo").trim().toLowerCase(),
+    note: r[idx.note] || "",
+  }));
+}
+
+// =========== データロード ===========
+async function loadData(){
+  const url = localStorage.getItem(STORAGE_KEY) || DEFAULT_CSV_URL;
+  const banner = document.getElementById("setup-banner");
+  const label = document.getElementById("source-label");
+  if (!url){
+    TASKS = rowsToTasks(FALLBACK);
+    banner.style.display = "block";
+    label.textContent = "データ取得先：組み込みサンプル（未連携）";
+  } else {
+    try {
+      label.textContent = "データ取得先：Googleスプレッドシート（読込中...）";
+      const res = await fetch(url, { cache: "no-store" });
+      const text = await res.text();
+      const rows = parseCSV(text);
+      TASKS = rowsToTasks(rows);
+      banner.style.display = "none";
+      label.textContent = "データ取得先：Googleスプレッドシート（連携中）";
+    } catch(e){
+      console.error(e);
+      TASKS = rowsToTasks(FALLBACK);
+      banner.style.display = "block";
+      banner.textContent = "スプレッドシートの読み込みに失敗したため、サンプルデータを表示しています。URLが正しいか、シートが『ウェブに公開』されているか確認してください。";
+      label.textContent = "データ取得先：取得失敗（サンプル表示中）";
+    }
+  }
+  document.getElementById("last-update").textContent = new Date().toLocaleString("ja-JP");
+}
+
+// =========== 描画 ===========
+let ownerFilter = "all", statusFilter = "all";
+
+function render(){
+  const counts = {done:0, doing:0, todo:0, late:0};
+  TASKS.forEach(t => counts[statusOf(t)]++);
+  const total = TASKS.length || 1;
+  const pct = Math.round(counts.done / total * 100);
+  document.getElementById("kpi-pct").textContent = pct;
+  document.getElementById("kpi-bar").style.width = pct + "%";
+  document.getElementById("kpi-done").textContent = counts.done;
+  document.getElementById("kpi-total").textContent = TASKS.length;
+  document.getElementById("ct-done").textContent = counts.done;
+  document.getElementById("ct-doing").textContent = counts.doing;
+  document.getElementById("ct-todo").textContent = counts.todo;
+  document.getElementById("ct-late").textContent = counts.late;
+
+  document.getElementById("cd-days").textContent =
+    Math.max(0, Math.ceil((EVENT_DATE - startOfDay(new Date())) / 86400000));
+
+  // 今週/来週
+  const today = startOfDay(new Date());
+  const in7 = new Date(today); in7.setDate(in7.getDate()+7);
+  const in21 = new Date(today); in21.setDate(in21.getDate()+21);
+  const thisW = [], nextW = [];
+  TASKS.forEach(t => {
+    const s = statusOf(t);
+    if (s === "done") return;
+    const d = new Date(t.date + "T00:00:00+09:00");
+    if (isNaN(d)) return;
+    if (s === "late" || d < in7) thisW.push(t);
+    else if (d < in21) nextW.push(t);
+  });
+  thisW.sort((a,b)=>a.date.localeCompare(b.date));
+  nextW.sort((a,b)=>a.date.localeCompare(b.date));
+
+  function buildList(arr){
+    if (!arr.length) return '<li class="meta">対応中のタスクなし ✓</li>';
+    return arr.map(t => {
+      const d = new Date(t.date+"T00:00:00+09:00");
+      let cls = "";
+      if (d < today) cls = "overdue";
+      else if (d.getTime() === today.getTime()) cls = "today";
+      return `<li>
+        <div>
+          <div>${t.title} ${t.owners.map(ownerTag).join("")}</div>
+          <div class="meta">${t.cat} ／ ${statusBadge(statusOf(t))}${t.note?`<span style="margin-left:6px;color:#777;">${t.note}</span>`:""}</div>
+        </div>
+        <div class="due ${cls}">${fmtDate(t.date)}</div>
+      </li>`;
+    }).join("");
+  }
+  document.getElementById("ul-this-week").innerHTML = buildList(thisW);
+  document.getElementById("ul-next-week").innerHTML = buildList(nextW);
+  document.getElementById("this-week-count").textContent = thisW.length + "件";
+  document.getElementById("next-week-count").textContent = nextW.length + "件";
+
+  renderTable();
+  renderCharts(counts);
+}
+
+function renderTable(){
+  const tbody = document.getElementById("task-body");
+  const rows = TASKS.slice()
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .filter(t=>{
+      if (ownerFilter !== "all" && !t.owners.includes(ownerFilter)) return false;
+      if (statusFilter !== "all" && statusOf(t) !== statusFilter) return false;
+      return true;
+    })
+    .map(t=>{
+      const s = statusOf(t);
+      const cls = s==="late" ? "row-late" : (s==="done"?"row-done":"");
+      return `<tr class="${cls}">
+        <td>${fmtDate(t.date)}</td>
+        <td>${t.cat}</td>
+        <td>${t.title}</td>
+        <td>${t.owners.map(ownerTag).join(" ")}</td>
+        <td>${statusBadge(s)}</td>
+        <td style="font-size:11px;color:#666;">${t.note||""}</td>
+      </tr>`;
+    }).join("");
+  tbody.innerHTML = rows || `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">該当タスクなし</td></tr>`;
+}
+
+document.querySelectorAll(".filter-bar button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    if (btn.dataset.owner){
+      ownerFilter = btn.dataset.owner;
+      document.querySelectorAll(".o-filter").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    } else {
+      statusFilter = btn.dataset.status;
+      document.querySelectorAll(".s-filter").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+    renderTable();
+  });
+});
+
+let donutChart, barChart;
+function renderCharts(counts){
+  if (donutChart) donutChart.destroy();
+  if (barChart) barChart.destroy();
+  donutChart = new Chart(document.getElementById("donut"), {
+    type:"doughnut",
+    data:{ labels:["完了","進行中","未着手","遅延"], datasets:[{
+      data:[counts.done,counts.doing,counts.todo,counts.late],
+      backgroundColor:["#4caf50","#f7c948","#cccccc","#e74c3c"], borderWidth:0
+    }]},
+    options:{ plugins:{ legend:{position:"bottom",labels:{font:{size:11}}}, title:{display:true,text:"全タスクの状態",font:{size:12}} }, cutout:"60%" }
+  });
+  const cats = [...new Set(TASKS.map(t=>t.cat))];
+  const dDone = cats.map(c=>TASKS.filter(t=>t.cat===c && statusOf(t)==="done").length);
+  const dRest = cats.map(c=>TASKS.filter(t=>t.cat===c && statusOf(t)!=="done").length);
+  barChart = new Chart(document.getElementById("bar"), {
+    type:"bar",
+    data:{ labels:cats, datasets:[
+      {label:"完了", data:dDone, backgroundColor:"#4caf50"},
+      {label:"残", data:dRest, backgroundColor:"#e0e0e0"}
+    ]},
+    options:{ indexAxis:"y",
+      scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:11}}}},
+      plugins:{legend:{position:"bottom",labels:{font:{size:11}}},title:{display:true,text:"カテゴリ別の完了/残",font:{size:12}}}
+    }
+  });
+}
+
+// =========== 設定モーダル ===========
+const modal = document.getElementById("modal-bg");
+document.getElementById("settings-btn").onclick = ()=>{
+  document.getElementById("csv-url").value = localStorage.getItem(STORAGE_KEY) || "";
+  modal.classList.add("open");
+};
+document.getElementById("modal-cancel").onclick = ()=>modal.classList.remove("open");
+document.getElementById("modal-clear").onclick = ()=>{
+  document.getElementById("csv-url").value = "";
+};
+document.getElementById("modal-save").onclick = async ()=>{
+  const url = document.getElementById("csv-url").value.trim();
+  if (url) localStorage.setItem(STORAGE_KEY, url);
+  else localStorage.removeItem(STORAGE_KEY);
+  modal.classList.remove("open");
+  await loadData(); render();
+};
+document.getElementById("reload-link").onclick = async (e)=>{
+  e.preventDefault();
+  await loadData(); render();
+};
+
+(async function(){
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
